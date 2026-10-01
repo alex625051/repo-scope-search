@@ -1,0 +1,19 @@
+<idea-plugin>
+    <id>dev.alexmiller.repo-scope-search</id>
+    <name>Repo Scope Search</name>
+    <vendor>Alex Miller</vendor>
+    <description><![CDATA[
+      Brute-force, streaming search across every GitLab repository available to the authenticated account.
+      Searches default branches first, then all remaining branches.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.python</depends>
+    <depends>PythonCore</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Repo Scope Search"
+                    anchor="bottom"
+                    factoryClass="dev.alexmiller.reposcopesearch.ui.RepoSearchToolWindowFactory"/>
+    </extensions>
+</idea-plugin>

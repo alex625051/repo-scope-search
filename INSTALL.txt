@@ -1,0 +1,27 @@
+1. Copy gradlew.bat, gradlew and gradle.properties to the project root,
+   replacing the existing files. Do not delete gradle/wrapper/gradle-wrapper.jar.
+
+2. Verify the configured PyCharm directory in cmd.exe:
+
+   dir "C:\Users\adminadmin\AppData\Local\Programs\PyCharm 2\jbr\bin\java.exe"
+   dir "C:\Users\adminadmin\AppData\Local\Programs\PyCharm 2\bin\pycharm64.exe"
+
+3. If either file is missing, find the real installation:
+
+   where /r "%LOCALAPPDATA%\Programs" pycharm64.exe
+   where /r "%ProgramFiles%\JetBrains" pycharm64.exe
+
+   Then change pycharmLocalPath in gradle.properties to the directory ABOVE bin.
+
+4. Test from the project root:
+
+   gradlew.bat --version
+   gradlew.bat clean test
+
+5. Bash / Git Bash:
+
+   ./gradlew --version
+   ./gradlew clean test
+
+The PyCharm path may contain spaces. Do not add quotes around the value in gradle.properties.
+The launcher handles spaces itself.
