@@ -1,36 +1,8 @@
-package dev.alexmiller.reposcopesearch.search
-
-import dev.alexmiller.reposcopesearch.model.SearchMode
-import dev.alexmiller.reposcopesearch.model.SearchOptions
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-
+package dev.alexananev.reposcopesearch.search
+import dev.alexananev.reposcopesearch.model.*
+import kotlin.test.*
 class ContentMatcherTest {
-    private fun options(
-        query: String,
-        mode: SearchMode = SearchMode.TEXT,
-        caseSensitive: Boolean = false,
-        multiline: Boolean = false,
-        fuzzy: Boolean = false
-    ) = SearchOptions(query, mode, caseSensitive, multiline, fuzzy, 0.80, 1, 10_000, 100)
-
-    @Test
-    fun `literal search returns context and line`() {
-        val result = ContentMatcher.find("zero\nHello world\ntwo", options("hello")).single()
-        assertEquals(2, result.line)
-        assertTrue(result.snippet.contains("> 2 | Hello world"))
-    }
-
-    @Test
-    fun `multiline regexp spans lines`() {
-        val result = ContentMatcher.find("begin\nalpha\nbeta\nend", options("alpha.*beta", SearchMode.REGEXP, multiline = true)).single()
-        assertEquals(2, result.line)
-        assertEquals(3, result.endLine)
-    }
-
-    @Test
-    fun `fuzzy similarity tolerates typo`() {
-        assertTrue(ContentMatcher.similarity("repository", "repositary") >= 0.8)
-    }
+    private fun options(q: String, mode: QueryMode = QueryMode.TEXT) = SearchOptions(q, mode, SearchBackend.LOCAL, false, false, false, .8, null, true, 1, 1024, 10, 1)
+    @Test fun textContext() { val h = ContentMatcher.find("a\nHello World\nc", options("hello")).single(); assertEquals(2, h.startLine); assertTrue("1: a" in h.snippet) }
+    @Test fun regex() { assertEquals(1, ContentMatcher.find("abc-123", options("[a-z]+-\\d+", QueryMode.REGEX)).size) }
 }

@@ -1,46 +1,33 @@
-package dev.alexmiller.reposcopesearch.settings
+package dev.alexananev.reposcopesearch.settings
 
 import com.intellij.credentialStore.CredentialAttributes
+import com.intellij.credentialStore.Credentials
 import com.intellij.ide.passwordSafe.PasswordSafe
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
-import com.intellij.openapi.project.Project
-import com.intellij.util.xmlb.XmlSerializerUtil
-import com.intellij.openapi.components.PersistentStateComponent
-import java.nio.file.Path
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.*
 
-@Service(Service.Level.PROJECT)
-@State(name = "RepoScopeSearchSettings", storages = [Storage("repoScopeSearch.xml")])
-class RepoSearchSettings : PersistentStateComponent<RepoSearchSettings.State> {
-    data class State(
+@Service(Service.Level.APP)
+@State(name = "RepoScopeSearch", storages = [Storage("repo-scope-search.xml")])
+class RepoSearchSettings : PersistentStateComponent<RepoSearchSettings.Data> {
+    data class Data(
         var gitLabUrl: String = "https://gitlab.com",
-        var cacheDirectory: String = defaultCacheDirectory(),
         var contextLines: Int = 2,
-        var maxFileMb: Int = 10,
-        var maxResults: Int = 5000,
-        var fuzzyThreshold: Double = 0.82
+        var maxFileMb: Int = 5,
+        var maxResults: Int = 10_000,
+        var cacheDirectory: String = "${PathManager.getSystemPath()}/repo-scope-search-cache",
+        var parallelism: Int = 4,
+        var fileMask: String = "",
+        var defaultBranchOnly: Boolean = false
     )
-
-    private var myState = State()
-
-    val data: State get() = myState
-
-    override fun getState(): State = myState
-    override fun loadState(state: State) = XmlSerializerUtil.copyBean(state, myState)
-
-    fun token(): String? = PasswordSafe.instance.getPassword(credentials())
-    fun setToken(token: String) = PasswordSafe.instance.setPassword(credentials(), token.trim())
-    fun clearToken() = PasswordSafe.instance.setPassword(credentials(), null)
-
-    private fun credentials(): CredentialAttributes =
-        CredentialAttributes("Repo Scope Search GitLab Token", normalizedBaseUrl(myState.gitLabUrl))
-
+    private var value = Data()
+    val data: Data get() = value
+    override fun getState(): Data = value
+    override fun loadState(state: Data) { value = state }
+    fun token(): String = PasswordSafe.instance.getPassword(CredentialAttributes(TOKEN_KEY)).orEmpty()
+    fun setToken(token: String) = PasswordSafe.instance.set(CredentialAttributes(TOKEN_KEY), Credentials("gitlab", token.ifBlank { null }))
     companion object {
-        fun get(project: Project): RepoSearchSettings = project.getService(RepoSearchSettings::class.java)
-        fun normalizedBaseUrl(value: String): String = value.trim().trimEnd('/').removeSuffix("/api/v4")
-        private fun defaultCacheDirectory(): String = Path.of(
-            System.getProperty("user.home"), ".cache", "repo-scope-search"
-        ).toString()
+        private const val TOKEN_KEY = "RepoScopeSearch.GitLabToken"
+        fun instance(): RepoSearchSettings = service()
+        fun normalizedBaseUrl(value: String) = value.trim().trimEnd('/').removeSuffix("/api/v4")
     }
 }

@@ -1,4 +1,4 @@
-package dev.alexmiller.reposcopesearch.util
+package dev.alexananev.reposcopesearch.util
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
